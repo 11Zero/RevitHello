@@ -1,0 +1,7 @@
+D:\C++公用文件夹\My Projects_VS2010\RevitHello\RevitHello\obj\Debug\RevitHello.csprojResolveAssemblyReference.cache
+D:\C++公用文件夹\My Projects_VS2010\RevitHello\RevitHello\bin\Debug\RevitHello.dll
+D:\C++公用文件夹\My Projects_VS2010\RevitHello\RevitHello\bin\Debug\RevitHello.pdb
+D:\C++公用文件夹\My Projects_VS2010\RevitHello\RevitHello\obj\Debug\RevitHello.MainForm.resources
+D:\C++公用文件夹\My Projects_VS2010\RevitHello\RevitHello\obj\Debug\RevitHello.csproj.GenerateResource.Cache
+D:\C++公用文件夹\My Projects_VS2010\RevitHello\RevitHello\obj\Debug\RevitHello.dll
+D:\C++公用文件夹\My Projects_VS2010\RevitHello\RevitHello\obj\Debug\RevitHello.pdb
