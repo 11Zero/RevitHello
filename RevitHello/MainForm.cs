@@ -11,59 +11,55 @@ using DB = Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.ApplicationServices;
+using Autodesk.Revit.Attributes;
 
 namespace RevitHello
 {
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
     public partial class MainForm : System.Windows.Forms.Form
     {
-
-        ExternalCommandData cmdDataForm;
-        string msgForm;
-        DB.ElementSet elementsForm = new DB.ElementSet();
-        Autodesk.Revit.ApplicationServices.Application RevitApp;
+        ExecuteEvent Exc = null;
+        ExternalEvent eventHandler = null;
         public MainForm()
         {
             InitializeComponent();
         }
 
-        public MainForm(ExternalCommandData cmdData, string msg, DB.ElementSet elements)
-        {
-            InitializeComponent();
-            cmdDataForm = cmdData;
-            RevitApp = cmdDataForm.Application.Application;
-            msgForm = msg;
-            elementsForm = elements;
-        }
-
-
         private void MainForm_Load(object sender, EventArgs e)
         {
-
+            Exc = new ExecuteEvent();
+            eventHandler = ExternalEvent.Create(Exc);
         }
 
-        public void GetVersionInfo(Autodesk.Revit.ApplicationServices.Application app)
+        private void btn_ver_Click(object sender, EventArgs e)
         {
-            if (app.VersionNumber == "2017")
+            eventHandler.Raise();
+        }
+    }
+
+    //新建一个类 继承 IExternalEventHandler接口
+    public class ExecuteEvent : IExternalEventHandler
+    {
+        public int enentID = 1;
+        public void Execute(UIApplication app)
+        {
+            switch(enentID)
             {
-                TaskDialog.Show("Supported version",
-                                "This application supported in this version.");
-            }
-            else
-            {
-                TaskDialog dialog = new TaskDialog("Unsupported version.");
-                dialog.MainIcon = TaskDialogIcon.TaskDialogIconWarning;
-                dialog.MainInstruction = "This application is only supported in Revit 2017.";
-                dialog.Show();
+                case 1:
+                    {
+                        this.CreateInstance(app); break;
+                    }
+                default:break;
             }
         }
 
-        public void CreateInstance()
+        public void CreateInstance(UIApplication app)
         {
-            //============代码片段3-13 创建拉伸实体族============
-            //创建族文档
-            Document familyDoc = RevitApp.NewFamilyDocument(@"C:\ProgramData\Autodesk\RVT 2017\Family Templates\Chinese\公制常规模型.rft");
-            using (Transaction transaction = new Transaction(familyDoc, "Create family"))
+            Document familyDoc = app.Application.NewFamilyDocument(@"C:\ProgramData\Autodesk\RVT 2017\Family Templates\Chinese\公制常规模型.rft");
+            try
             {
+                Transaction transaction = new Transaction(familyDoc, "Create family");
                 if (transaction.Start() == TransactionStatus.Started)
                 {
                     CurveArray curveArray = new CurveArray();
@@ -74,53 +70,24 @@ namespace RevitHello
                     CurveArrArray curveArrArray = new CurveArrArray();
                     curveArrArray.Append(curveArray);
                     //创建一个拉伸实体
-                    familyDoc.FamilyCreate.NewExtrusion(true, curveArrArray, SketchPlane.Create(familyDoc, RevitApp.Create.NewPlane(new XYZ(0, 0, 1), XYZ.Zero)), 10);
+                    familyDoc.FamilyCreate.NewExtrusion(true, curveArrArray, SketchPlane.Create(familyDoc, Plane.CreateByNormalAndOrigin(new XYZ(0, 0, 1), XYZ.Zero)), 10);
                     //创建一个族类型
                     familyDoc.FamilyManager.NewType("MyNewType");
                     transaction.Commit();
-                    familyDoc.SaveAs("MyNewFamily.rfa");
+                    familyDoc.SaveAs(@"C:\Users\Administrator\Desktop\MyNewFamily.rfa");
                     familyDoc.Close();
                 }
             }
-
+            catch (Exception)
+            {
+                throw;
+            }
         }
-
-        public void GetSelInfo()
+        //估计是记录外部事件名称的 和事务名称相同
+        public string GetName()
         {
-            UIDocument uidoc = cmdDataForm.Application.ActiveUIDocument;
-            DB.Document doc = uidoc.Document;
-            DB.ElementSet collection = new DB.ElementSet();
-            ICollection<DB.ElementId> selectedIds = uidoc.Selection.GetElementIds();
-            foreach (DB.ElementId id in selectedIds)
-            {
-                collection.Insert(uidoc.Document.GetElement(id));
-            }
-
-            if (0 == collection.Size)
-            {
-                // 如果在执行该例子之前没有选择任何元素，则会弹出提示.
-                text_info.Text = "你没有选任何元素.";
-                return;
-            }
-            else
-            {
-                String info = "所选元素类型为: ";
-                foreach (DB.Element elem in collection)
-                {
-                    info += "\n\t" + elem.GetType().ToString();
-                }
-
-                text_info.Text = info;
-                //TaskDialog.Show("Revit", info);
-                return;
-            }
+            return "this is a Test";
         }
 
-        private void btn_ver_Click(object sender, EventArgs e)
-        {
-            this.CreateInstance();
-            
-            //this.GetVersionInfo(cmdDataForm.Application.Application);
-        }
     }
 }
